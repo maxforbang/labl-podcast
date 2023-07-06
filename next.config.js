@@ -4,6 +4,14 @@ const nextConfig = {
   experimental: {
     scrollRestoration: true,
   },
+  async rewrites() {
+    return [
+      {
+        source: '/rss.xml',
+        destination: '/api/rss',
+      },
+    ];
+  },
 }
 
 module.exports = nextConfig

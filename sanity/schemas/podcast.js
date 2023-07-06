@@ -1,15 +1,17 @@
-import {
-  categories,
-  itunes,
-  itunesEpisodeSettings,
-  linkListItem,
-  owner,
-  podcast as podcastPluginValue,
-  schedule,
-  sponsor,
-  sponsorRead,
-} from 'sanity-plugin-podcast'
+import { podcast as podcastPluginValue } from 'sanity-plugin-podcast'
 
-const podcast = { ...podcastPluginValue, title: 'Podcast Info' }
+const podcast = {
+  ...podcastPluginValue,
+  title: 'Podcast Info',
+  fields: podcastPluginValue.fields.map((field) => {
+    if (['slug', 'copyright', 'language'].includes(field.name)) {
+      return {
+        ...field,
+        hidden: true,
+      }
+    }
+    return field
+  }),
+}
 
 export default podcast

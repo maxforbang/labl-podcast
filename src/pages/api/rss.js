@@ -1,6 +1,6 @@
 import { getAllPodcasts } from 'sanity-plugin-podcast' // Import the function to fetch podcast data
 import RSS from 'rss'
-import { client as sanityClient } from 'sanity/lib/client'
+import { client as sanityClient } from '../../../sanity/lib/client'
 import { groq } from 'next-sanity'
 
 export default async (req, res) => {
