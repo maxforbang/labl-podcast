@@ -1,4 +1,4 @@
-import { getAllPodcasts } from 'sanity-plugin-podcast' // Import the function to fetch podcast data
+// import { getAllPodcasts } from 'sanity-plugin-podcast' // Import the function to fetch podcast data
 import RSS from 'rss'
 import { client as sanityClient } from '../../../sanity/lib/client'
 import { groq } from 'next-sanity'
@@ -14,8 +14,8 @@ export default async (req, res) => {
   const feed = new RSS({
     title: 'Your Podcast Title',
     description: 'Your Podcast Description',
-    feed_url: 'https://example.com/rss.xml', // URL to your RSS feed
-    site_url: 'https://example.com', // URL to your website
+    feed_url: 'https://liveabeautifullifepodcast.com/rss.xml', // URL to your RSS feed
+    site_url: 'https://liveabeautifullifepodcast.com', // URL to your website
     language: 'en',
   })
 

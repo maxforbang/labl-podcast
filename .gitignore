@@ -2,6 +2,7 @@
 
 .env
 cover-art.png
+
 # dependencies
 /node_modules
 /.pnp

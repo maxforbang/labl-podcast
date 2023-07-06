@@ -7,9 +7,11 @@ import 'focus-visible'
 export default function App({ Component, pageProps }) {
   return (
     <AudioProvider>
-      <Layout>
+      <Layout podcastInfo={pageProps?.podcastInfo}>
         <Component {...pageProps} />
       </Layout>
     </AudioProvider>
   )
 }
+
+

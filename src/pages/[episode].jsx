@@ -1,11 +1,14 @@
 import { useMemo } from 'react'
 import Head from 'next/head'
-import { parse } from 'rss-to-json'
+// import { parse } from 'rss-to-json'
+import { client as sanityClient } from '../../sanity/lib/client'
 
 import { useAudioPlayer } from '@/components/AudioProvider'
 import { Container } from '@/components/Container'
 import { FormattedDate } from '@/components/FormattedDate'
 import { PlayButton } from '@/components/player/PlayButton'
+import { groq } from 'next-sanity'
+import { fetchPodcastInfo } from '@/utils/fetchPodcastInfo'
 
 export default function Episode({ episode }) {
   let date = new Date(episode.published)
@@ -14,10 +17,10 @@ export default function Episode({ episode }) {
     () => ({
       title: episode.title,
       audio: {
-        src: episode.audio.src,
-        type: episode.audio.type,
+        src: episode.audio.url,
+        type: episode.audio.mimeType,
       },
-      link: `/${episode.id}`,
+      link: `/${episode.slug.current}`,
     }),
     [episode]
   )
@@ -27,7 +30,7 @@ export default function Episode({ episode }) {
     <>
       <Head>
         <title>{`${episode.title} - Their Side`}</title>
-        <meta name="description" content={episode.description} />
+        <meta name="description" content={episode.subtitle} />
       </Head>
       <article className="py-16 lg:py-36">
         <Container>
@@ -45,13 +48,13 @@ export default function Episode({ episode }) {
               </div>
             </div>
             <p className="ml-24 mt-3 text-lg font-medium leading-8 text-slate-700">
-              {episode.description}
+              {episode.subtitle}
             </p>
           </header>
           <hr className="my-12 border-gray-200" />
           <div
-            className="prose prose-slate mt-14 [&>h2:nth-of-type(3n)]:before:bg-violet-200 [&>h2:nth-of-type(3n+2)]:before:bg-indigo-200 [&>h2]:mt-12 [&>h2]:flex [&>h2]:items-center [&>h2]:font-mono [&>h2]:text-sm [&>h2]:font-medium [&>h2]:leading-7 [&>h2]:text-slate-900 [&>h2]:before:mr-3 [&>h2]:before:h-3 [&>h2]:before:w-1.5 [&>h2]:before:rounded-r-full [&>h2]:before:bg-cyan-200 [&>ul]:mt-6 [&>ul]:list-['\2013\20'] [&>ul]:pl-5"
-            dangerouslySetInnerHTML={{ __html: episode.content }}
+            className="[&>h2]:before:w-1.5 [&>ul]:list-['\2013\20'] prose prose-slate mt-14 [&>h2:nth-of-type(3n)]:before:bg-violet-200 [&>h2:nth-of-type(3n+2)]:before:bg-indigo-200 [&>h2]:mt-12 [&>h2]:flex [&>h2]:items-center [&>h2]:font-mono [&>h2]:text-sm [&>h2]:font-medium [&>h2]:leading-7 [&>h2]:text-slate-900 [&>h2]:before:mr-3 [&>h2]:before:h-3 [&>h2]:before:rounded-r-full [&>h2]:before:bg-cyan-200 [&>ul]:mt-6 [&>ul]:pl-5"
+            dangerouslySetInnerHTML={{ __html: episode.summary }}
           />
         </Container>
       </article>
@@ -60,20 +63,40 @@ export default function Episode({ episode }) {
 }
 
 export async function getStaticProps({ params }) {
-  let feed = await parse('https://their-side-feed.vercel.app/api/feed')
-  let episode = feed.items
-    .map(({ id, title, description, content, enclosures, published }) => ({
-      id: id.toString(),
-      title: `${id}: ${title}`,
-      description,
-      content,
-      published,
-      audio: enclosures.map((enclosure) => ({
-        src: enclosure.url,
-        type: enclosure.type,
-      }))[0],
-    }))
-    .find(({ id }) => id === params.episode)
+  // let feed = await parse('https://their-side-feed.vercel.app/api/feed')
+  // let episode = feed.items
+  //   .map(({ id, title, description, content, enclosures, published }) => ({
+  //     id: id.toString(),
+  //     title: `${id}: ${title}`,
+  //     description,
+  //     content,
+  //     published,
+  //     audio: enclosures.map((enclosure) => ({
+  //       src: enclosure.url,
+  //       type: enclosure.type,
+  //     }))[0],
+  //   }))
+  //   .find(({ id }) => id === params.episode)
+
+  const episodeSlug = params?.episode
+
+  const episodeQuery = groq`
+  *[_type == 'episode' && slug.current == $episode][0] {
+    slug,
+    title,
+    subtitle,
+    summary,
+    'audio': file.asset->{url, mimeType},
+    'published': schedule.publish
+  }
+`
+
+  // const podcast = await sanityClient.fetch(podcastInfoQuery)
+  const episode = await sanityClient.fetch(episodeQuery, {
+    episode: episodeSlug,
+  })
+
+  const podcastInfo = await fetchPodcastInfo()
 
   if (!episode) {
     return {
@@ -83,6 +106,7 @@ export async function getStaticProps({ params }) {
 
   return {
     props: {
+      podcastInfo,
       episode,
     },
     revalidate: 10,
@@ -90,14 +114,18 @@ export async function getStaticProps({ params }) {
 }
 
 export async function getStaticPaths() {
-  let feed = await parse('https://their-side-feed.vercel.app/api/feed')
+  const episodeSlugsQuery = groq`*[_type == 'episode' && slug != null] {
+    slug
+  }`
+
+  const episodeSlugs = await sanityClient.fetch(episodeSlugsQuery)
+
+  const paths = episodeSlugs.map((episode) => ({
+    params: { episode: episode.slug.current },
+  }))
 
   return {
-    paths: feed.items.map(({ id }) => ({
-      params: {
-        episode: id.toString(),
-      },
-    })),
+    paths,
     fallback: 'blocking',
   }
 }

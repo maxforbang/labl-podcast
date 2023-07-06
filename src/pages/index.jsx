@@ -2,17 +2,20 @@ import { useMemo } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { parse } from 'rss-to-json'
+import { client as sanityClient } from '../../sanity/lib/client'
 
 import { useAudioPlayer } from '@/components/AudioProvider'
 import { Container } from '@/components/Container'
 import { FormattedDate } from '@/components/FormattedDate'
+import { groq } from 'next-sanity'
+import { fetchPodcastInfo } from '@/utils/fetchPodcastInfo'
 
 function PlayPauseIcon({ playing, ...props }) {
   return (
     <svg aria-hidden="true" viewBox="0 0 10 10" fill="none" {...props}>
       {playing ? (
         <path
-          fillRule="evenodd"
+          filslRule="evenodd"
           clipRule="evenodd"
           d="M1.496 0a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5H2.68a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5H1.496Zm5.82 0a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5H8.5a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5H7.316Z"
         />
@@ -30,10 +33,10 @@ function EpisodeEntry({ episode }) {
     () => ({
       title: episode.title,
       audio: {
-        src: episode.audio.src,
-        type: episode.audio.type,
+        src: episode.audio.url,
+        type: episode.audio.mimeType,
       },
-      link: `/${episode.id}`,
+      link: `/${episode.slug.current}`,
     }),
     [episode]
   )
@@ -41,23 +44,23 @@ function EpisodeEntry({ episode }) {
 
   return (
     <article
-      aria-labelledby={`episode-${episode.id}-title`}
+      aria-labelledby={`episode-${episode.slug.current}-title`}
       className="py-10 sm:py-12"
     >
       <Container>
         <div className="flex flex-col items-start">
           <h2
-            id={`episode-${episode.id}-title`}
+            id={`episode-${episode.slug.current}-title`}
             className="mt-2 text-lg font-bold text-slate-900"
           >
-            <Link href={`/${episode.id}`}>{episode.title}</Link>
+            <Link href={`/${episode.slug.current}`}>{episode.title}</Link>
           </h2>
           <FormattedDate
             date={date}
             className="order-first font-mono text-sm leading-7 text-slate-500"
           />
           <p className="mt-1 text-base leading-7 text-slate-700">
-            {episode.description}
+            {episode.subtitle}
           </p>
           <div className="mt-4 flex items-center gap-4">
             <button
@@ -83,7 +86,7 @@ function EpisodeEntry({ episode }) {
               /
             </span>
             <Link
-              href={`/${episode.id}`}
+              href={`/${episode.slug.current}`}
               className="flex items-center text-sm font-bold leading-6 text-pink-500 hover:text-pink-700 active:text-pink-900"
               aria-label={`Show notes for episode ${episode.title}`}
             >
@@ -117,7 +120,7 @@ export default function Home({ episodes }) {
         </Container>
         <div className="divide-y divide-slate-100 sm:mt-4 lg:mt-8 lg:border-t lg:border-slate-100">
           {episodes.map((episode) => (
-            <EpisodeEntry key={episode.id} episode={episode} />
+            <EpisodeEntry key={episode.slug.current} episode={episode} />
           ))}
         </div>
       </div>
@@ -126,20 +129,29 @@ export default function Home({ episodes }) {
 }
 
 export async function getStaticProps() {
-  let feed = await parse('https://their-side-feed.vercel.app/api/feed')
+  const episodesQuery = groq`
+    *[_type == 'episode'] {
+      slug,
+      title,
+      subtitle,
+      'audio': file.asset->{url, mimeType},
+      'published': schedule.publish
+    }
+  `
+  const episodes = await sanityClient.fetch(episodesQuery)
+
+  const podcastInfo = await fetchPodcastInfo()
 
   return {
     props: {
-      episodes: feed.items.map(
-        ({ id, title, description, enclosures, published }) => ({
-          id,
-          title: `${id}: ${title}`,
+      podcastInfo,
+      episodes: episodes.map(
+        ({ slug, title, subtitle, audio, published }, index) => ({
+          slug,
+          title: `${index + 1}: ${title}`,
           published,
-          description,
-          audio: enclosures.map((enclosure) => ({
-            src: enclosure.url,
-            type: enclosure.type,
-          }))[0],
+          subtitle,
+          audio,
         })
       ),
     },
