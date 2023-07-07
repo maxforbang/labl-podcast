@@ -4,7 +4,6 @@ import Link from 'next/link'
 import clsx from 'clsx'
 
 import { AudioPlayer } from '@/components/player/AudioPlayer'
-import posterImage from '@/images/poster.png'
 
 function randomBetween(min, max, seed = 1) {
   return () => {
@@ -37,9 +36,9 @@ function Waveform(props) {
           <stop offset="100%" stopColor="black" />
         </linearGradient>
         <linearGradient id={`${id}-gradient`}>
-          <stop offset="0%" stopColor="#4989E8" />
-          <stop offset="50%" stopColor="#6159DA" />
-          <stop offset="100%" stopColor="#FF54AD" />
+          <stop offset="0%" stopColor="#7C6F8A" />
+          <stop offset="50%" stopColor="#FFB15F" />
+          <stop offset="100%" stopColor="#695267" />
         </linearGradient>
         <mask id={`${id}-mask`}>
           <rect width="100%" height="100%" fill={`url(#${id}-pattern)`} />
@@ -170,17 +169,13 @@ function AboutSection(props) {
   )
 }
 
-export function Layout({ children, podcastInfo }) {
-  let hosts = ['Eric Gordon', 'Wes Mantooth']
-  
-  console.log(podcastInfo)
-
+export function Layout({ children, podcastInfo = {}}) {
   const {
-    title, 
-    subtitle,
-    itunes,
-    description,
-    coverArt
+    title = '', 
+    subtitle = '',
+    itunes = {},
+    description = '',
+    coverArt = {}
   } = podcastInfo
 
   return (
@@ -189,7 +184,7 @@ export function Layout({ children, podcastInfo }) {
         <div className="hidden lg:sticky lg:top-0 lg:flex lg:w-16 lg:flex-none lg:items-center lg:whitespace-nowrap lg:py-12 lg:text-sm lg:leading-7 lg:[writing-mode:vertical-rl]">
           <span className="font-mono text-slate-500">Hosted by</span>
           <span className="mt-6 flex gap-6 font-bold text-slate-900">
-            {itunes.author}
+            {itunes?.author}
           </span>
         </div>
         <div className="relative z-10 mx-auto px-4 pb-4 pt-10 sm:px-6 md:max-w-2xl md:px-4 lg:min-h-full lg:flex-auto lg:border-x lg:border-slate-200 lg:px-8 lg:py-12 xl:px-12">
@@ -199,9 +194,8 @@ export function Layout({ children, podcastInfo }) {
             aria-label="Homepage"
           >
             <Image
-              // className="w-full"
               fill
-              src={coverArt.url}
+              src={coverArt?.url}
               alt=""
               sizes="(min-width: 1024px) 20rem, (min-width: 640px) 16rem, 12rem"
               priority
@@ -233,7 +227,6 @@ export function Layout({ children, podcastInfo }) {
               {[
                 ['Spotify', SpotifyIcon],
                 ['Apple Podcast', ApplePodcastIcon],
-                ['Overcast', OvercastIcon],
                 ['RSS Feed', RSSIcon],
               ].map(([label, Icon]) => (
                 <li key={label} className="flex">
@@ -263,16 +256,13 @@ export function Layout({ children, podcastInfo }) {
             <span className="ml-2.5">Hosted by</span>
           </h2>
           <div className="mt-2 flex gap-6 text-sm font-bold leading-7 text-slate-900">
-            {hosts.map((host, hostIndex) => (
-              <Fragment key={host}>
-                {hostIndex !== 0 && (
-                  <span aria-hidden="true" className="text-slate-400">
-                    /
-                  </span>
-                )}
-                {host}
+            
+              <Fragment>
+          
+                
+                {itunes?.author}
               </Fragment>
-            ))}
+            
           </div>
         </div>
       </footer>
