@@ -104,8 +104,7 @@ export default function Home({ episodes }) {
     <>
       <Head>
         <title>
-          Their Side - Conversations with the most tragically misunderstood
-          people of our time
+          Live A Beautiful Life Podcast - Recipes for living a beautiful life
         </title>
         <meta
           name="description"
