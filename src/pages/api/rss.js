@@ -1,34 +1,35 @@
 // import { getAllPodcasts } from 'sanity-plugin-podcast' // Import the function to fetch podcast data
 import RSS from 'rss'
-import { client as sanityClient } from '../../../sanity/lib/client'
-import { groq } from 'next-sanity'
+import { fetchPodcastInfo } from '@/utils/fetchPodcastInfo'
+import { fetchEpisodes } from '@/utils/fetchEpisodes'
 
 export default async (req, res) => {
-  const podcastInfoQuery = groq`
-    *[_type == 'podcast'][0] {
-      // fields
-  }`
+  const podcastInfo = await fetchPodcastInfo()
+  const episodes = await fetchEpisodes()
 
-  //const episodesQuery = 
+  const {
+    title = '', 
+    // subtitle = '',
+    // itunes = {},
+    description = '',
+    // coverArt = {}
+  } = podcastInfo
 
   const feed = new RSS({
-    title: 'Your Podcast Title',
-    description: 'Your Podcast Description',
+    title,
+    description,
     feed_url: 'https://liveabeautifullifepodcast.com/rss.xml', // URL to your RSS feed
     site_url: 'https://liveabeautifullifepodcast.com', // URL to your website
     language: 'en',
   })
 
-  // Fetch podcast data from Sanity
-  const podcasts = await getAllPodcasts() // Make sure to adjust the function to match the way you fetch data in your project
-
   // Add each podcast episode to the RSS feed
-  podcasts.forEach((podcast) => {
+  episodes.forEach((podcast) => {
     feed.item({
       title: podcast.title,
-      description: podcast.description,
-      url: `https://example.com/podcast/${podcast.slug}`, // URL to the podcast episode
-      date: podcast.date, // Date of the podcast episode
+      description: podcast.summary,
+      url: `https://liveabeautifullifepodcast.com/${podcast.slug.current}`, // URL to the podcast episode
+      date: podcast.schedule?.publish, // Date of the podcast episode
     })
   })
 

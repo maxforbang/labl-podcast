@@ -1,14 +1,12 @@
 import { useMemo } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
-import { parse } from 'rss-to-json'
-import { client as sanityClient } from '../../sanity/lib/client'
 
 import { useAudioPlayer } from '@/components/AudioProvider'
 import { Container } from '@/components/Container'
 import { FormattedDate } from '@/components/FormattedDate'
-import { groq } from 'next-sanity'
 import { fetchPodcastInfo } from '@/utils/fetchPodcastInfo'
+import { fetchEpisodes } from '@/utils/fetchEpisodes'
 
 function PlayPauseIcon({ playing, ...props }) {
   return (
@@ -128,18 +126,10 @@ export default function Home({ episodes }) {
 }
 
 export async function getStaticProps() {
-  const episodesQuery = groq`
-    *[_type == 'episode'] {
-      slug,
-      title,
-      subtitle,
-      'audio': file.asset->{url, mimeType},
-      'published': schedule.publish
-    }
-  `
-  const episodes = await sanityClient.fetch(episodesQuery)
+
 
   const podcastInfo = await fetchPodcastInfo()
+  const episodes = await fetchEpisodes()
 
   return {
     props: {

@@ -29,7 +29,7 @@ export default function Episode({ episode }) {
   return (
     <>
       <Head>
-        <title>{`${episode.title} - Their Side`}</title>
+        <title>{`${episode.title} - Live A Beautiful Life Podcast`}</title>
         <meta name="description" content={episode.subtitle} />
       </Head>
       <article className="py-16 lg:py-36">
@@ -63,21 +63,6 @@ export default function Episode({ episode }) {
 }
 
 export async function getStaticProps({ params }) {
-  // let feed = await parse('https://their-side-feed.vercel.app/api/feed')
-  // let episode = feed.items
-  //   .map(({ id, title, description, content, enclosures, published }) => ({
-  //     id: id.toString(),
-  //     title: `${id}: ${title}`,
-  //     description,
-  //     content,
-  //     published,
-  //     audio: enclosures.map((enclosure) => ({
-  //       src: enclosure.url,
-  //       type: enclosure.type,
-  //     }))[0],
-  //   }))
-  //   .find(({ id }) => id === params.episode)
-
   const episodeSlug = params?.episode
 
   const episodeQuery = groq`
