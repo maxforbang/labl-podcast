@@ -1,14 +1,11 @@
 import { useMemo } from 'react'
 import Head from 'next/head'
-// import { parse } from 'rss-to-json'
-import { client as sanityClient } from '../../sanity/lib/client'
+import { parse } from 'rss-to-json'
 
 import { useAudioPlayer } from '@/components/AudioProvider'
 import { Container } from '@/components/Container'
 import { FormattedDate } from '@/components/FormattedDate'
 import { PlayButton } from '@/components/player/PlayButton'
-import { groq } from 'next-sanity'
-import { fetchPodcastInfo } from '@/utils/fetchPodcastInfo'
 
 export default function Episode({ episode }) {
   let date = new Date(episode.published)
@@ -17,10 +14,10 @@ export default function Episode({ episode }) {
     () => ({
       title: episode.title,
       audio: {
-        src: episode.audio.url,
-        type: episode.audio.mimeType,
+        src: episode.audio.src,
+        type: episode.audio.type,
       },
-      link: `/${episode.slug.current}`,
+      link: `/${episode.id}`,
     }),
     [episode]
   )
@@ -30,7 +27,7 @@ export default function Episode({ episode }) {
     <>
       <Head>
         <title>{`${episode.title} - Live A Beautiful Life Podcast`}</title>
-        <meta name="description" content={episode.subtitle} />
+        <meta name="description" content={episode.description} />
       </Head>
       <article className="py-16 lg:py-36">
         <Container>
@@ -47,14 +44,12 @@ export default function Episode({ episode }) {
                 />
               </div>
             </div>
-            <p className="ml-24 mt-3 text-lg font-medium leading-8 text-slate-700">
-              {episode.subtitle}
-            </p>
+            {/* <div className="ml-24 mt-3 text-lg font-medium leading-8 text-slate-700" dangerouslySetInnerHTML={{ __html: episode.description ?? '' }}></div> */}
           </header>
           <hr className="my-12 border-gray-200" />
           <div
-            className="[&>h2]:before:w-1.5 [&>ul]:list-['\2013\20'] prose prose-slate mt-14 [&>h2:nth-of-type(3n)]:before:bg-violet-200 [&>h2:nth-of-type(3n+2)]:before:bg-indigo-200 [&>h2]:mt-12 [&>h2]:flex [&>h2]:items-center [&>h2]:font-mono [&>h2]:text-sm [&>h2]:font-medium [&>h2]:leading-7 [&>h2]:text-slate-900 [&>h2]:before:mr-3 [&>h2]:before:h-3 [&>h2]:before:rounded-r-full [&>h2]:before:bg-cyan-200 [&>ul]:mt-6 [&>ul]:pl-5"
-            dangerouslySetInnerHTML={{ __html: episode.summary }}
+            className="prose prose-slate mt-14 [&>h2:nth-of-type(3n)]:before:bg-violet-200 [&>h2:nth-of-type(3n+2)]:before:bg-indigo-200 [&>h2]:mt-12 [&>h2]:flex [&>h2]:items-center [&>h2]:font-mono [&>h2]:text-sm [&>h2]:font-medium [&>h2]:leading-7 [&>h2]:text-slate-900 [&>h2]:before:mr-3 [&>h2]:before:h-3 [&>h2]:before:w-1.5 [&>h2]:before:rounded-r-full [&>h2]:before:bg-cyan-200 [&>ul]:mt-6 [&>ul]:list-['\2013\20'] [&>ul]:pl-5"
+            dangerouslySetInnerHTML={{ __html: episode.content }}
           />
         </Container>
       </article>
@@ -63,25 +58,20 @@ export default function Episode({ episode }) {
 }
 
 export async function getStaticProps({ params }) {
-  const episodeSlug = params?.episode
-
-  const episodeQuery = groq`
-  *[_type == 'episode' && slug.current == $episode][0] {
-    slug,
-    title,
-    subtitle,
-    summary,
-    'audio': file.asset->{url, mimeType},
-    'published': schedule.publish
-  }
-`
-
-  // const podcast = await sanityClient.fetch(podcastInfoQuery)
-  const episode = await sanityClient.fetch(episodeQuery, {
-    episode: episodeSlug,
-  })
-
-  const podcastInfo = await fetchPodcastInfo()
+  let feed = await parse('https://feeds.libsyn.com/480843/rss')
+  let episode = feed.items
+    .map(({ id, title, description, content, enclosures, published }) => ({
+      id: id.toString(),
+      title,
+      description,
+      content,
+      published,
+      audio: enclosures.map((enclosure) => ({
+        src: enclosure.url,
+        type: enclosure.type,
+      }))[0],
+    }))
+    .find(({ id }) => id === params.episode)
 
   if (!episode) {
     return {
@@ -91,7 +81,11 @@ export async function getStaticProps({ params }) {
 
   return {
     props: {
-      podcastInfo,
+      podcastInfo: {
+        title: feed.title,
+        description: feed.description,
+        image: feed.image,
+      },
       episode,
     },
     revalidate: 10,
@@ -99,18 +93,14 @@ export async function getStaticProps({ params }) {
 }
 
 export async function getStaticPaths() {
-  const episodeSlugsQuery = groq`*[_type == 'episode' && slug != null] {
-    slug
-  }`
-
-  const episodeSlugs = await sanityClient.fetch(episodeSlugsQuery)
-
-  const paths = episodeSlugs.map((episode) => ({
-    params: { episode: episode.slug.current },
-  }))
+  let feed = await parse('https://feeds.libsyn.com/480843/rss')
 
   return {
-    paths,
+    paths: feed.items.map(({ id }) => ({
+      params: {
+        episode: id.toString(),
+      },
+    })),
     fallback: 'blocking',
   }
 }

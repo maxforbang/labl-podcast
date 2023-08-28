@@ -137,8 +137,8 @@ function PersonIcon(props) {
 function AboutSection(props) {
   let [isExpanded, setIsExpanded] = useState(false)
 
-  const {className: styles, text} = props
-  
+  const { className: styles, text } = props
+
   return (
     <section className={styles}>
       <h2 className="flex items-center font-mono text-sm font-medium leading-7 text-slate-900">
@@ -169,14 +169,8 @@ function AboutSection(props) {
   )
 }
 
-export function Layout({ children, podcastInfo = {}}) {
-  const {
-    title = '', 
-    subtitle = '',
-    itunes = {},
-    description = '',
-    coverArt = {}
-  } = podcastInfo
+export function Layout({ children, podcastInfo = {} }) {
+  const { title = '', description = '', image = '' } = podcastInfo
 
   return (
     <>
@@ -184,18 +178,18 @@ export function Layout({ children, podcastInfo = {}}) {
         <div className="hidden lg:sticky lg:top-0 lg:flex lg:w-16 lg:flex-none lg:items-center lg:whitespace-nowrap lg:py-12 lg:text-sm lg:leading-7 lg:[writing-mode:vertical-rl]">
           <span className="font-mono text-slate-500">Hosted by</span>
           <span className="mt-6 flex gap-6 font-bold text-slate-900">
-            {itunes?.author}
+            Adam Williams
           </span>
         </div>
         <div className="relative z-10 mx-auto px-4 pb-4 pt-10 sm:px-6 md:max-w-2xl md:px-4 lg:min-h-full lg:flex-auto lg:border-x lg:border-slate-200 lg:px-8 lg:py-12 xl:px-12">
           <Link
             href="/"
-            className="relative mx-auto block w-48 aspect-square overflow-hidden rounded-lg bg-slate-200 shadow-xl shadow-slate-200 sm:w-64 sm:rounded-xl lg:w-auto lg:rounded-2xl"
+            className="relative mx-auto block aspect-square w-48 overflow-hidden rounded-lg bg-slate-200 shadow-xl shadow-slate-200 sm:w-64 sm:rounded-xl lg:w-auto lg:rounded-2xl"
             aria-label="Homepage"
           >
             <Image
               fill
-              src={coverArt?.url}
+              src={image}
               alt=""
               sizes="(min-width: 1024px) 20rem, (min-width: 640px) 16rem, 12rem"
               priority
@@ -207,10 +201,10 @@ export function Layout({ children, podcastInfo = {}}) {
               <Link href="/">{title}</Link>
             </p>
             <p className="mt-3 text-lg font-medium leading-8 text-slate-700">
-              {subtitle}
+              {description}
             </p>
           </div>
-          <AboutSection className="mt-12 hidden lg:block" text={description}/>
+          {/* <AboutSection className="mt-12 hidden lg:block" text={description}/> */}
           <section className="mt-10 lg:mt-12">
             <h2 className="sr-only flex items-center font-mono text-sm font-medium leading-7 text-slate-900 lg:not-sr-only">
               <TinyWaveFormIcon
@@ -225,13 +219,21 @@ export function Layout({ children, podcastInfo = {}}) {
               className="mt-4 flex justify-center gap-10 text-base font-medium leading-7 text-slate-700 sm:gap-8 lg:flex-col lg:gap-4"
             >
               {[
-                ['Spotify', SpotifyIcon],
-                ['Apple Podcast', ApplePodcastIcon],
-                ['RSS Feed', RSSIcon],
-              ].map(([label, Icon]) => (
+                [
+                  'Spotify',
+                  SpotifyIcon,
+                  'https://open.spotify.com/show/6uN5nnXKxyUKTkERXa5o9W?si=I8IcKYoZSIqNE_uaNfeMIg&nd=1',
+                ],
+                [
+                  'Apple Podcast',
+                  ApplePodcastIcon,
+                  'https://podcasts.apple.com/us/podcast/live-a-beautiful-life-podcast/id1701411849',
+                ],
+                ['RSS Feed', RSSIcon, 'https://feeds.libsyn.com/480843/rss'],
+              ].map(([label, Icon, href]) => (
                 <li key={label} className="flex">
                   <Link
-                    href="/"
+                    href={href}
                     className="group flex items-center"
                     aria-label={label}
                   >
@@ -250,19 +252,13 @@ export function Layout({ children, podcastInfo = {}}) {
       </main>
       <footer className="border-t border-slate-200 bg-slate-50 py-10 pb-40 sm:py-16 sm:pb-32 lg:hidden">
         <div className="mx-auto px-4 sm:px-6 md:max-w-2xl md:px-4">
-          <AboutSection text={description}/>
+          <AboutSection text={description} />
           <h2 className="mt-8 flex items-center font-mono text-sm font-medium leading-7 text-slate-900">
             <PersonIcon className="h-3 w-auto fill-slate-300" />
             <span className="ml-2.5">Hosted by</span>
           </h2>
           <div className="mt-2 flex gap-6 text-sm font-bold leading-7 text-slate-900">
-            
-              <Fragment>
-          
-                
-                {itunes?.author}
-              </Fragment>
-            
+            <Fragment>Adam Williams</Fragment>
           </div>
         </div>
       </footer>
