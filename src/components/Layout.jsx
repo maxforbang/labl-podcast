@@ -229,7 +229,7 @@ export function Layout({ children, podcastInfo = {} }) {
                   ApplePodcastIcon,
                   'https://podcasts.apple.com/us/podcast/live-a-beautiful-life-podcast/id1701411849',
                 ],
-                ['RSS Feed', RSSIcon, 'https://feeds.libsyn.com/480843/rss'],
+                ['RSS Feed', RSSIcon, 'https://liveabeautifullifepodcast.com/rss'],
               ].map(([label, Icon, href]) => (
                 <li key={label} className="flex">
                   <Link

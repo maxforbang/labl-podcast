@@ -1,5 +1,6 @@
 import { fetchPodcastInfo } from "@/utils/fetchPodcastInfo"
 import Link from "next/link"
+import parse from "rss-to-json"
 
 export default function NotFoundPage() {
   return (
@@ -34,11 +35,15 @@ export default function NotFoundPage() {
 }
 
 export async function getStaticProps() {
-  const podcastInfo = await fetchPodcastInfo()
+  let feed = await parse('https://feeds.libsyn.com/480843/rss')
 
   return {
     props: {
-      podcastInfo,
+      podcastInfo: {
+        title: feed.title,
+        description: feed.description,
+        image: feed.image,
+      },
     },
     revalidate: 10,
   }
