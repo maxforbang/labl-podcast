@@ -106,7 +106,7 @@ export default function Home({ episodes, podcastInfo = {} }) {
         <title>Live A Beautiful Life</title>
         <meta
           name="description"
-          content="Conversations with the most tragically misunderstood people of our time."
+          content="A place to explore the many paths that lead to living a beautiful life."
         />
       </Head>
       <div className="pb-12 pt-16 sm:pb-4 lg:pt-12">
