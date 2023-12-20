@@ -4,7 +4,8 @@ const nextConfig = {
     domains: [
       'images.unsplash.com',
       'cdn.sanity.io',
-      'ssl-static.libsyn.com'
+      'ssl-static.libsyn.com',
+      'static.libsyn.com'
     ]
   },
   reactStrictMode: true,
